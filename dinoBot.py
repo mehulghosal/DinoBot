@@ -6,12 +6,12 @@ def startGame():
 	while True:
 		if keyboard.is_pressed('space'):
 			#sleep so it doesnt quit bc of the first frame
-			sleep(0.75)
+			sleep(1)
 			break
 	print("start")
 
 def jump():
-	global jumpTime, jumpInc
+	global jumpTime, jumpInc, b4JumpTime
 	keyboard.press('space')
 	sleep(jumpTime)
 	jumpTime += jumpInc
@@ -29,24 +29,17 @@ def sumPixels(x1, y1, x2, y2):
 	s = 0
 	for i in img: s += sum(i)
 	return s
-
-
-#gameover (white back)
-goSumW = 1475832
-#gameover black back)
-goSumB = 160512
-
-
+#print(sumPixels(588, 218, 780, 229)) --> 31992
 
 gameOverCheck = 0
 
 #increments slowly so jump sooner as game gets faster
-rightCheck = 580
-leftCheck = 470
-inc = 0.04
+rightCheck = 570
+leftCheck = 515
+inc = 0.05
 
 jumpTime = 0.1
-jumpInc = 0.001
+jumpInc = 0.0001
 
 startGame()
 
@@ -54,24 +47,41 @@ while True:
 
 	jumped = False
 
-	gameOverCheck = sumPixels(588, 218, 780, 229)
-	#print(gameOverCheck)
+	background = sumPixels(602, 196, 603, 197)/3 #1 pix
 
-	if gameOverCheck < 1570000 or 150000 < gameOverCheck < 170000:
-		print("break")
-		sys.exit()
+	gameOverCheck = sumPixels(588, 218, 780, 229)/(2112*3) #192*11 = 2112 pix
 
-	lowobjectSum = sumPixels(leftCheck, 280, rightCheck, 305)
-
-	highobjectSum = sumPixels(leftCheck, 230, rightCheck, 260)
+	lowobjectSum = sumPixels(leftCheck, 247, rightCheck, 270)/((rightCheck-leftCheck)*(270-247)*3) #85*25 = 2125 pix
+	highobjectSum = sumPixels(leftCheck, 205, rightCheck, 230)/((rightCheck-leftCheck)*(230-205)*3) #85*25 = 2125 pix
+	print(lowobjectSum, highobjectSum, gameOverCheck)
 	
 	rightCheck += inc
 	leftCheck += inc
 	#inc += 0.001
 
-	if lowobjectSum < 2100000:
-		jump()
-		jumped = True
+	#white screen
+	if background == 255:
+		if 245 < gameOverCheck < 250:
+			print("break")
+			sys.exit()
 
-	if highobjectSum < 2500000 and not jumped:
-		duck()
+		if lowobjectSum < 247:
+			jump()
+			jumped = True
+
+		if not jumped and highobjectSum < 244:
+			duck()
+
+	#black back
+	else: 
+		if gameOverCheck > 10:
+			print("break")
+			sys.exit()
+
+		if lowobjectSum > 3:
+			jump()
+			jumped = True
+			b4JumpTime -= 0.001
+
+		if not jumped and highobjectSum > 3:
+			duck()
