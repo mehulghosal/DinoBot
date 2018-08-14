@@ -1,62 +1,77 @@
-import math, keyboard
+import math, keyboard, sys
 from time import sleep
 from PIL import ImageGrab, Image
 
 def startGame():
 	while True:
 		if keyboard.is_pressed('space'):
+			#sleep so it doesnt quit bc of the first frame
+			sleep(0.75)
 			break
 	print("start")
 
 def jump():
+	global jumpTime, jumpInc
 	keyboard.press('space')
-	print("pressed space")
-	sleep(0.01)
+	sleep(jumpTime)
+	jumpTime += jumpInc
 	keyboard.release('space')
-	print("released")
 
 def duck():
 	keyboard.press('down')
-	print("pressed down")
-	sleep(0.01)
+	sleep(0.5)
 	keyboard.release('down')
-	print("released")
 
+#pass in top left and bottom right coordinates of rectangle
+#returns sum of pixel values contained in rectangle
+def sumPixels(x1, y1, x2, y2):
+	img = (list(ImageGrab.grab((x1, y1, x2, y2)).getdata()))
+	s = 0
+	for i in img: s += sum(i)
+	return s
 
-#significant coordinates of dinosaur
-topRight = (425, 270)
-bottomRight = (425, 308)
 
 #gameover (white back)
 goSumW = 1475832
 #gameover black back)
 goSumB = 160512
 
-lowobject = (list(ImageGrab.grab((470, 280, 580, 306)).getdata()))
-lowobjectSum = 0
-for i in lowobject: lowobjectSum += sum(i)
-print(lowobjectSum)
 
-highobject = (list(ImageGrab.grab((470, 265, 580, 280)).getdata()))
-highobjectSum = 0
-for i in highobject: highobjectSum += sum(i)
-print((highobjectSum))
 
 gameOverCheck = 0
 
+#increments slowly so jump sooner as game gets faster
+rightCheck = 580
+leftCheck = 470
+inc = 0.04
 
-# startGame()
+jumpTime = 0.1
+jumpInc = 0.001
 
-# while True:
+startGame()
 
-# 	gameOverImage = (list(ImageGrab.grab((588, 218, 780, 229)).getdata()))
-# 	gameOverCheck = 0
-# 	for i in gameOverImage: gameOverCheck += sum(i)
-# 	print(gameOverCheck)
+while True:
 
-# 	if 1450000 < gameOverCheck < 1500000 or 150000 < gameOverCheck < 170000:
-# 		print("break")
-# 		break
+	jumped = False
 
-# 	#515,280 --> +109, +26
-# 	lowobject = (list(ImageGrab.grab((515, 280, 624, 306)).getdata()))
+	gameOverCheck = sumPixels(588, 218, 780, 229)
+	#print(gameOverCheck)
+
+	if gameOverCheck < 1570000 or 150000 < gameOverCheck < 170000:
+		print("break")
+		sys.exit()
+
+	lowobjectSum = sumPixels(leftCheck, 280, rightCheck, 305)
+
+	highobjectSum = sumPixels(leftCheck, 230, rightCheck, 260)
+	
+	rightCheck += inc
+	leftCheck += inc
+	#inc += 0.001
+
+	if lowobjectSum < 2100000:
+		jump()
+		jumped = True
+
+	if highobjectSum < 2500000 and not jumped:
+		duck()
