@@ -1,71 +1,72 @@
-import math, keyboard, sys
+# importing necessary libraries
+import math, sys
 from time import sleep
-from PIL import ImageGrab, Image
+from pynput.keyboard import Key, Controller
+import pyscreenshot as ImageGrab
 
-def startGame():
-	while True:
-		if keyboard.is_pressed('space'):
-			#sleep so it doesnt quit bc of the first frame
-			sleep(1)
-			break
-	print("start")
+keyboard = Controller()
 
+# when jump detected, this function 'presses' the spacebar
 def jump():
 	global jumpTime, jumpInc, b4JumpTime
-	keyboard.press('space')
+	keyboard.press(Key.space)
 	sleep(jumpTime)
 	jumpTime += jumpInc
-	keyboard.release('space')
+	keyboard.release(Key.space)
+	print("jump")
 
+# this funtion will press the down key for ducking
 def duck():
-	keyboard.press('down')
-	sleep(0.5)
-	keyboard.release('down')
+	keyboard.press(Key.down)
+	sleep(jumpTime)
+	keyboard.release(Key.down)
 
-#pass in top left and bottom right coordinates of rectangle
-#returns sum of pixel values contained in rectangle
+# pass in top left and bottom right coordinates of rectangle
+# returns sum of pixel values contained in rectangle
+# uses python imaging library to take a screenshot
 def sumPixels(x1, y1, x2, y2):
-	img = (list(ImageGrab.grab((x1, y1, x2, y2)).getdata()))
+	img = (list(ImageGrab.grab((int(x1), int(y1), int(x2), int(y2))).getdata()))
 	s = 0
 	for i in img: s += sum(i)
 	return s
-#print(sumPixels(588, 218, 780, 229)) --> 31992
 
-gameOverCheck = 0
 
 #increments slowly so jump sooner as game gets faster
-rightCheck = 570
-leftCheck = 515
-inc = 0.05
+rightCheck = 850
+leftCheck = 760
+inc = 0.2
 
-jumpTime = 0.1
+jumpTime = 0.09
 jumpInc = 0.0001
 
-startGame()
+# waits so i can get chrome up
+sleep(3)
 
+# main game loop
 while True:
 
 	jumped = False
 
 	background = sumPixels(602, 196, 603, 197)/3 #1 pix
 
-	gameOverCheck = sumPixels(588, 218, 780, 229)/(2112*3) #192*11 = 2112 pix
+	gameOverCheck = sumPixels(850, 175, 1070, 200)/(220*25*3)
 
-	lowobjectSum = sumPixels(leftCheck, 247, rightCheck, 270)/((rightCheck-leftCheck)*(270-247)*3) #85*25 = 2125 pix
-	highobjectSum = sumPixels(leftCheck, 205, rightCheck, 230)/((rightCheck-leftCheck)*(230-205)*3) #85*25 = 2125 pix
-	print(lowobjectSum, highobjectSum, gameOverCheck)
+	lowobjectSum = sumPixels(leftCheck, 240, rightCheck, 260)/((rightCheck-leftCheck)*(260-240)*3)
+
+	highobjectSum = sumPixels(leftCheck, 205, rightCheck, 230)/((rightCheck-leftCheck)*(230-205)*3)
+	# print(lowobjectSum, highobjectSum, gameOverCheck)
 	
 	rightCheck += inc
 	leftCheck += inc
 	#inc += 0.001
 
 	#white screen
-	if background == 255:
-		if 245 < gameOverCheck < 250:
+	if background >= 250:
+		if 230 < gameOverCheck < 250:
 			print("break")
 			sys.exit()
 
-		if lowobjectSum < 247:
+		if lowobjectSum < 250:
 			jump()
 			jumped = True
 
@@ -73,8 +74,8 @@ while True:
 			duck()
 
 	#black back
-	else: 
-		if gameOverCheck > 10:
+	elif background < 30: 
+		if gameOverCheck > 30:
 			print("break")
 			sys.exit()
 
